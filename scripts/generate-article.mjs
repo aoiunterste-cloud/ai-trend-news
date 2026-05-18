@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import Anthropic from "@anthropic-ai/sdk";
 import Parser from "rss-parser";
 import fs from "fs/promises";
 import path from "path";
@@ -157,15 +157,15 @@ async function getRandomQuery() {
 
 // ===== Article Generation =====
 async function generateArticle() {
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
-    console.error("Error: GEMINI_API_KEY is not set in the environment variables.");
+    console.error("Error: ANTHROPIC_API_KEY is not set in the environment variables.");
     process.exit(1);
   }
 
-  // Initialize the Gemini AI client
-  const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+  // Initialize the Anthropic Claude client
+  const client = new Anthropic({ apiKey });
+  const MODEL_ID = "claude-sonnet-4-6";
 
   // --- Fetch Latest AI News from Google News RSS (with topic rotation) ---
   console.log("Fetching latest AI news from Google News RSS...");
@@ -260,10 +260,13 @@ async function generateArticle() {
   `;
 
   try {
-    console.log("Generating article with Gemini API...");
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    let text = response.text();
+    console.log("Generating article with Claude API...");
+    const response = await client.messages.create({
+      model: MODEL_ID,
+      max_tokens: 8192,
+      messages: [{ role: "user", content: prompt }],
+    });
+    let text = response.content[0].text;
 
     // Clean up if the AI wrapped the response in a markdown code block by mistake
     text = text.trim();

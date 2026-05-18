@@ -36,7 +36,7 @@ jobs:
       - name: Run AI Generation Script
         env:
           # This secret must be added in GitHub Repository Settings -> Secrets and variables -> Actions
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
           node scripts/generate-article.mjs
           npm run generate-og

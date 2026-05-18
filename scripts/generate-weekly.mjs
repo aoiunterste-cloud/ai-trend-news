@@ -4,7 +4,7 @@ dotenv.config();
 import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import Anthropic from "@anthropic-ai/sdk";
 import { generateOgImage, loadFont } from './generate-og-image.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -43,9 +43,9 @@ async function getRecentArticles() {
 }
 
 async function generateWeeklyDigest() {
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
-    console.error("Error: GEMINI_API_KEY is not set.");
+    console.error("Error: ANTHROPIC_API_KEY is not set.");
     process.exit(1);
   }
 
@@ -58,8 +58,8 @@ async function generateWeeklyDigest() {
   console.log(`Found ${articles.length} articles from the past week.`);
   const articleSummaries = articles.map(a => `- **${a.title}** (${a.date})\n  ${a.description}`).join('\n\n');
 
-  const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+  const client = new Anthropic({ apiKey });
+  const MODEL_ID = "claude-sonnet-4-6";
 
   const prompt = `
     You are an expert AI trend analyst.
@@ -95,9 +95,13 @@ async function generateWeeklyDigest() {
   `;
 
   try {
-    console.log("Generating Weekly Digest...");
-    const result = await model.generateContent(prompt);
-    let text = result.response.text().trim();
+    console.log("Generating Weekly Digest with Claude API...");
+    const response = await client.messages.create({
+      model: MODEL_ID,
+      max_tokens: 8192,
+      messages: [{ role: "user", content: prompt }],
+    });
+    let text = response.content[0].text.trim();
 
     if (text.startsWith("\`\`\`markdown")) text = text.substring(13, text.length - 3).trim();
     else if (text.startsWith("\`\`\`")) text = text.substring(3, text.length - 3).trim();

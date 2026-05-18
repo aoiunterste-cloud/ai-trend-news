@@ -16,7 +16,7 @@
     "@astrojs/mdx": "^5.0.2",
     "@astrojs/rss": "^4.0.17",
     "@astrojs/sitemap": "^3.7.1",
-    "@google/generative-ai": "^0.24.1",
+    "@anthropic-ai/sdk": "^0.30.0",
     "astro": "^6.0.8",
     "dotenv": "^17.3.1",
     "pagefind": "^1.4.0",
